@@ -1,37 +1,32 @@
 #include "int2str.h"
-
-#include <limits.h>
 #include <stdlib.h>
 
 
-char* int2str(int number) {
-    if (number == 0) {
-        return "0";
-    }
-
-    if (number == INT_MIN) {
-        return "-2147483648";
-    }
-
-    char* str = calloc(13, sizeof(char));
+char* int2str(int num) {
+    char * str = calloc(12, sizeof(char));
     int len = 0;
 
-    if (number < 0) {
+    unsigned int number = 0;
+    if (num < 0) {
         len++;
         str[0] = '-';
-        number *= -1;
+        number = num * -1;
+    } else {
+        number = num;
     }
 
-    int copy = number;
-    while (copy > 0) {
+      int copy = number;
+    int count = 0;
+    while ((copy == 0 && count < 1) || copy > 0) {
         copy /= 10;
         len++;
+        count++;
     }
 
     int digit = 0;
-    int count = 0;
+    count = 0;
     char ch = 0;
-    while (number > 0) {
+    while ((number == 0 && count < 1) || number > 0) {
         digit = number % 10;
         number = number / 10;
         ch = digit + '0';
