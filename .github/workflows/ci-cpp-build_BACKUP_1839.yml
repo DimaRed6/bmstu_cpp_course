@@ -1,0 +1,164 @@
+<<<<<<< HEAD
+name: C++ Build, Test, and Generate Report
+=======
+name: C++ Build and Run (Сборка и запуск проекта)
+>>>>>>> d0aae5aa09ea330c5b7a4362ae24fa27e5604db8
+
+on:
+  push:
+    branches: [main, hw]
+  pull_request:
+    branches: [main, hw]
+
+jobs:
+<<<<<<< HEAD
+  build-docker:
+    uses: ./.github/workflows/docker-build.yml
+
+  test:
+    name: Build and Test
+    needs: build-docker
+=======
+  build:
+    name: Build Docker Image
+>>>>>>> d0aae5aa09ea330c5b7a4362ae24fa27e5604db8
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+<<<<<<< HEAD
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: cpp_course-image
+
+      - name: Load Docker image
+        run: docker load -i cpp_course_image.tar
+
+      - name: Run tests in container
+        run: |
+          # Создаем директорию для результатов тестов на хосте
+          mkdir -p test-results
+          
+          # Запускаем тесты в контейнере
+          docker run --name cpp_course_container \
+            -v ${{ github.workspace }}:/workspace \
+            bmstu_cpp_course-bmstu:latest \
+            bash -c "cd /workspace && \
+                    mkdir -p build && \
+                    cd build && \
+                    cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_FLAGS='-fprofile-arcs -ftest-coverage' && \
+                    cmake --build . && \
+                    cd .. && \
+                    mkdir -p test-results && \
+                    # Запускаем только тестовые исполняемые файлы проекта, а не тесты GoogleTest на Python
+                    for test_bin in \$(find build/tasks -type f -executable); do \
+                      echo \"Running \$test_bin\" && \
+                      \$test_bin --gtest_output=xml:test-results/\$(basename \$test_bin).xml || true; \
+                    done && \
+                    # Копируем результаты тестов в директорию, смонтированную на хосте
+                    cp -r test-results/* /workspace/test-results/ || true"
+          
+          # Показываем, какие результаты тестов были найдены
+          echo "Found test results:"
+          ls -la test-results/
+
+      - name: Upload test results (XML)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: test_results_xml
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 5
+
+  generate-report:
+    name: Generate HTML Report
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download test results (XML)
+        uses: actions/download-artifact@v4
+        with:
+          name: test_results_xml
+          path: test-results/
+
+      - name: Install xsltproc
+        run: sudo apt-get install -y xsltproc
+
+      - name: Apply XSLT transformation
+        run: |
+          # Применяем XSLT-шаблон к каждому XML-файлу
+          for xml_file in test-results/*.xml; do
+            xsltproc transform.xsl "$xml_file" > "${xml_file%.xml}.html"
+          done
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test_report_html
+          path: test-results/*.html
+          if-no-files-found: warn
+          retention-days: 5
+=======
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        id: cache-docker-layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      - name: Build Docker image with Docker Compose
+        run: |
+          docker compose build bmstu
+          docker compose up bmstu
+          # Save the image as a tarball
+          docker save bmstu_cpp_course-bmstu:latest -o cpp_course_image.tar
+
+      - name: Upload Docker image tarball
+        uses: actions/upload-artifact@v3
+        with:
+          name: cpp_course-image
+          path: cpp_course_image.tar
+
+      - name: Save Docker layer cache
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-layer-cache
+          path: /tmp/.buildx-cache
+
+  run-script:
+    name: Run run.sh Script
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download Docker image tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: cpp_course-image
+          path: ./artifacts
+
+      - name: Load Docker image
+        run: |
+          docker load -i ./artifacts/cpp_course_image.tar
+
+      - name: Run run.sh Script inside Docker Container
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/cppcourse bmstu_cpp_course-bmstu:latest bash -c "cd /cppcourse/artifacts && ls -la && cd .. && ./cppcourse/artifacts/docker/run_tasks/run.sh"
+>>>>>>> d0aae5aa09ea330c5b7a4362ae24fa27e5604db8
