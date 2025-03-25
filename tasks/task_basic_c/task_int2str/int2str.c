@@ -36,4 +36,8 @@ char* int2str(int num) {
     str[len] = '\0';
 
     return str;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> d0aae5aa09ea330c5b7a4362ae24fa27e5604db8

@@ -22,4 +22,8 @@ int str2int(const char *str) {
     }
     assert(m_count > 0);
     return result * m_sign;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> d0aae5aa09ea330c5b7a4362ae24fa27e5604db8

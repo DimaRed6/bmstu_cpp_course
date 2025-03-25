@@ -3,9 +3,14 @@
 // NOLINTEND
 #include "str2int.h"
 
+<<<<<<< HEAD
 TEST(str2int, BasicTest)
 {
 	EXPECT_EQ(str2int("0"), 0);
+=======
+TEST(str2int, BasicTest) {
+    EXPECT_EQ(str2int("0"), 0);
+>>>>>>> d0aae5aa09ea330c5b7a4362ae24fa27e5604db8
 }
 
 TEST(str2int, BasicTestZero)
